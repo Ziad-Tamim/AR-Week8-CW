@@ -1,27 +1,41 @@
 #!/usr/bin/env python3
 import rospy
-from ar_week8_test.srv import compute_cubic_traj
+from ar_week8_test.srv import compute_cubic_traj, compute_cubic_trajResponse
+import numpy as np
 
-def compute_coefficients(req):
-    # Extract request parameters
-    p0, pf, v0, vf, t0, tf = req.p0, req.pf, req.v0, req.vf, req.t0, req.tf
-
-    # Compute time delta
-    delta_t = tf - t0
-
-    # Compute coefficients based on the boundary conditions
-    # These equations are derived from the boundary conditions of cubic polynomial trajectories
-    a0 = p0
-    a1 = v0
-    a2 = (3*(pf - p0)/delta_t**2) - (2*v0/delta_t) - (vf/delta_t)
-    a3 = (-2*(pf - p0)/delta_t**3) + ((v0 + vf)/delta_t**2)
-
-    return ComputeCubicTrajResponse(a0, a1, a2, a3)
+def handle_compute_cubic_traj(req):
+    rospy.loginfo("Received request for computing cubic trajectory coefficients")
+    
+    # Extract the request parameters
+    p0 = req.p0
+    pf = req.pf
+    v0 = req.v0
+    vf = req.vf
+    t0 = req.t0
+    tf = req.tf
+    
+    # Setup the matrix and vector for solving the system of equations
+    # Matrix for the system of equations based on boundary conditions
+    M = np.array([[1, t0, t0**2, t0**3],
+                  [1, tf, tf**2, tf**3],
+                  [0, 1, 2*t0, 3*t0**2],
+                  [0, 1, 2*tf, 3*tf**2]])
+    
+    # Vector for the boundary conditions
+    b = np.array([p0, pf, v0, vf])
+    
+    # Solve for the coefficients
+    coeffs = np.linalg.solve(M, b)
+    
+    # Create the response message
+    response = compute_cubic_trajResponse(*coeffs)
+    
+    return response
 
 def compute_cubic_coeffs_server():
     rospy.init_node('computer')
-    s = rospy.Service('compute_cubic_traj', compute_cubic_traj, compute_coefficients)
-    rospy.loginfo("Ready to compute cubic coefficients.")
+    s = rospy.Service('compute_cubic_traj', compute_cubic_traj, handle_compute_cubic_traj)
+    rospy.loginfo("Service compute_cubic_traj ready to compute trajectory coefficients.")
     rospy.spin()
 
 if __name__ == "__main__":

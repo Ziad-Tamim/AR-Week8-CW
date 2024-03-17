@@ -1,37 +1,47 @@
 #!/usr/bin/env python3
 import rospy
-import random
 from ar_week8_test.msg import cubic_traj_params
+import random
 
-def generate_points():
-    # Define the publisher
+def points_generator():
+    # Initialize the ROS node
+    rospy.init_node('generator') # , anonymous=True
+    
+    # Create a publisher object
     pub = rospy.Publisher('params', cubic_traj_params, queue_size=10)
-    # Initialize the node
-    rospy.init_node('generator', anonymous=True)
-    rate = rospy.Rate(0.05)  # Set the rate to 0.05Hz (20 seconds)
+    
+    # Set the loop rate (how often to publish data)
+    rate = rospy.Rate(0.05)  # Once every 20 seconds
 
     while not rospy.is_shutdown():
-        # Generate random values within specified limits
+        # Generate random values within the specified ranges
         p0 = random.uniform(-10, 10)
         pf = random.uniform(-10, 10)
         v0 = random.uniform(-10, 10)
         vf = random.uniform(-10, 10)
-        t0 = 0  # t0 is always 0
-        dt = random.uniform(5, 10)
-        tf = t0 + dt
-
-        # Create a message and assign the generated values
-        msg = cubic_traj_params(p0=p0, pf=pf, v0=v0, vf=vf, t0=t0, tf=tf)
-
+        t0 = 0  # Initial time is always 0
+        tf = t0 + random.uniform(5, 10)  # Final time is t0 + a random value between 5 and 10
+        
+        # Create a message object and assign the random values
+        msg = cubic_traj_params()
+        msg.p0 = p0
+        msg.pf = pf
+        msg.v0 = v0
+        msg.vf = vf
+        msg.t0 = t0
+        msg.tf = tf
+        
+        # Log the information
+        rospy.loginfo(f"Publishing: p0={p0}, pf={pf}, v0={v0}, vf={vf}, t0={t0}, tf={tf}")
+        
         # Publish the message
         pub.publish(msg)
-        rospy.loginfo("Published cubic_traj_params with p0: %f, pf: %f, v0: %f, vf: %f, t0: %f, tf: %f" % (p0, pf, v0, vf, t0, tf))
-
-        # Sleep to maintain the loop rate
+        
+        # Sleep until the next cycle
         rate.sleep()
 
 if __name__ == '__main__':
     try:
-        generate_points()
+        points_generator()
     except rospy.ROSInterruptException:
         pass

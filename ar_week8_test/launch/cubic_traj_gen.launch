@@ -1,0 +1,17 @@
+<launch>
+    <!-- Node for computing cubic trajectory coefficients -->
+    <node name="computer" pkg="ar_week8_test" type="compute_cubic_coeffs.py" output="screen" />
+
+    <!-- Node for generating trajectory parameters -->
+    <node name="generator" pkg="ar_week8_test" type="points_generator.py" output="screen" />
+    
+    <!-- Node for planning the trajectory -->
+    <node name="planner" pkg="ar_week8_test" type="cubic_traj_planner.py" output="screen" />
+    
+    <!-- Node for plotting the trajectory -->
+    <node name="plotter" pkg="ar_week8_test" type="plot_cubic_traj.py" output="screen" />
+    
+    <!-- Example of starting rqt_plot, adjust topic as necessary -->
+    <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" args="/trajPos /trajVel /trajAcc" required="true"/>
+
+</launch>
