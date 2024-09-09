@@ -1,6 +1,5 @@
 # AR-Week8-CW
-code create by Ziad Tamim
-230973161
+Code create by Ziad Tamim
 date: 17/03/2024
 
 ## Description:
